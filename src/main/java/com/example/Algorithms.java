@@ -34,4 +34,27 @@ public class Algorithms {
         if(b == 0) return a;
         return greatestCommonDivisor(b, a % b);
     }
+
+    /**
+     * Kadane's Algorithm, used to find max sum subarray from a given array.
+     * The idea is is to take a currenSum and maxSum initialized to 0 and first el of array respectively.
+     * Then while iterating keep on adding el to current and avaluating max. When current is < 0 we assign current to
+     * 0.
+     * @returns maxSum of contagious subarray.
+     * @param arr the input array.
+     */
+    public long kadaneAlgorithm(long [] arr) {
+        boolean condition = arr.length >= 1;
+        assert condition;
+
+        long current = 0;
+        long max = arr[0];
+        for(long el : arr) {
+            current += el;
+            max = Math.max(current, max);
+            if(current < 0) current = 0;
+        }
+
+        return max;
+    }
 }

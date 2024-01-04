@@ -1,8 +1,8 @@
 package com.example.geeksforgeeks;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.IntStream;
 
 /**
  * Solutions to all POTD problems.
@@ -11,20 +11,17 @@ import java.util.Set;
 public class Solutions {
 
     public static void main(String[] args) {
-        //expected output 6
-        //shortest subsequence would be abxycd
 
-        /*
 
-        a -> 0
-        b -> 0
-        c-> 1
-        d -> 1
-        x -> 0
-        y -> 0
 
-         */
-        System.out.println(shortestCommonSupersequence("abcd", "xycd", 4, 4));
+        Solutions solutions = new Solutions();
+        //System.out.println(solutions.nthRowOfPascalTriangle(4));
+        //System.out.println(solutions.countOccurrencesInRange(10, 19, 1));
+//        System.out.println(Solutions.determinantOfMatrix(new int[][]{{1, 2, 3},
+//                {4, 5, 6},
+//                {7, 10, 9}}, 3));
+        System.out.println(Solutions.singleElement(new int[]{3, 2, 1, 34, 34, 1, 2, 34, 2, 1}, 10));
+
     }
 
     /**
@@ -59,5 +56,174 @@ public class Solutions {
         }
     }
 
+
+    ArrayList<Long> nthRowOfPascalTriangle(int n) {
+        ArrayList<Long> pre = new ArrayList<>();
+
+        for(int i = 0; i < n; i++) {
+            ArrayList<Long> curr = new ArrayList<>();
+            for(int j = 0; j < i + 1; j++) {
+                if(j == i || j == 0) {
+                    curr.add(1l);
+                } else {
+                    long num = (long)((pre.get(j) + pre.get(j-1)) % Math.pow(10, 7));
+                    curr.add(num);
+                }
+            }
+            pre = curr;
+        }
+        return pre;
+    }
+
+    int countOccurrencesInRange(int start, int end, int x) {
+        AtomicInteger counter = new AtomicInteger();
+        for(var num = start + 1; num < end; num++) {
+            //System.out.print(num + " ");
+            char[] chars = String.valueOf(num).toCharArray();
+            Arrays.sort(chars);
+            for(char c : chars) if(c - '0' == x) counter.incrementAndGet();
+        }
+        return counter.get();
+    }
+
+
+    /**
+     * Given a grid of m x n dimension which represents a gold mine and each value represents the amount of gold
+     * you can extract.
+     *
+     * We can start any row from first col and move
+     *  -> Diagonal UP Right
+     *  -> Diagonal BOTTOM Right
+     *  -> Right
+     *
+     *  We need to maximise the amount of hold we can collect.
+     */
+    static int maxGold(int n, int m, int grid[][]) {
+        int col = 0;
+        int ans = -1;
+        for(int i = 0; i < n; i++) {
+            ans = Math.max(ans, solveForGold(i, col, grid, m, n));
+        }
+        return ans;
+    }
+
+    private static int solveForGold(int row, int col, int[][] grid, int m, int n) {
+        //index bound condition
+        if(row < 0 || row >= n || col < 0 || col >= m) return 0;
+
+        int ans = 0;
+        int[][] paths = {{0, 1}, {-1, 1}, {1, 1}};
+        for(int[] path : paths) {
+            ans = Math.max(ans, grid[row][col] + solveForGold(row + path[0], col+ path[1], grid, m, n));
+        }
+        return ans;
+    }
+
+    static boolean isValid(int n, int m, int i,int j){
+        if(i<0 || j<0 || i>=n || j>=m)  return false;
+        return true;
+    }
+
+    static int maxGoldIterative(int n, int m, int grid[][]) {
+
+        for(int j = m -2; j >=0; j--) {
+            for(int i = 0; i < n; i++) {
+                int max = Integer.MIN_VALUE;
+
+                //top right
+                if(isValid(n, m, i -1, j + 1)) max = Math.max(grid[i-1][j + 1], max);
+
+                //right
+                if(isValid(n, m, i, j + 1)) max = Math.max(grid[i][j + 1], max);
+
+                //bottom right
+                if(isValid(n, m, i + 1, j+ 1)) max = Math.max(grid[i + 1][j+ 1], max);
+
+                grid[i][j] += max;
+            }
+        }
+
+        int ans = 0;
+        for(var i = 0; i < n; i++) {
+            ans = Math.max(ans, grid[i][0]);
+        }
+        return ans;
+    }
+
+    /**
+     * Given a square matrix. Find the determinant Of Matrix.
+     *
+     * @param matrix
+     * @param n
+     * @return the determinant of matrix.
+     */
+    static int determinantOfMatrix(int[][] matrix, int n) {
+        if (n == 1) {
+            return matrix[0][0];
+        }
+        if (n == 2) {
+            return matrix[0][0] * matrix[1][1] - matrix[0][1] * matrix[1][0];
+        }
+
+        int ans = 0;
+        for (int i = 0; i < n; i++) {
+            int[][] mat = new int[n - 1][n - 1];
+            int index = 0;
+            for (int j = 0; j < n; j++) {
+                if (j != i) {
+                    System.arraycopy(matrix[j], 1, mat[index], 0, n - 1);
+                    index++;
+                }
+            }
+            ans += (int) (Math.pow(-1, i) * matrix[i][0] * determinantOfMatrix(mat, n - 1));
+        }
+        return ans;
+    }
+
+    /**
+     *
+     * The questions says given an array containing elements repeating 3 times. There is exactly one
+     * number that repeats only once. We have to return the number.
+     *
+     * The first thought is to apply sorting, use sliding window.
+     * Other is to use HashMap to store count of each number and return the N whose count is 1.
+     *
+     * @Tag Medium
+     * @param arr the input array
+     * @param N the length of the array
+     * @return int saying which element occurs once.
+     */
+    static int singleElement(int[] arr , int N) {
+        /*
+        Arrays.sort(arr);
+        int windowStart = 0;
+
+        for(int windowEnd = 0; windowEnd < N; windowEnd++) {
+            if(windowEnd % 3 != 0) {
+                while(windowStart <= windowEnd) {
+                    if(arr[windowStart++] != arr[windowEnd]) return arr[windowStart -1];
+                }
+                windowStart = windowEnd + 1;
+            }
+        }
+        if(windowStart == arr.length -1) return arr[windowStart];
+        return 0;
+         */
+
+        int ones = 0, twos = 0; // initializing two variables to keep track of bits
+        int common_bit_mask; // variable to store common bits
+
+        for (int i = 0; i < N; i++) {
+            twos = twos | (ones & arr[i]);
+
+            ones = ones ^ arr[i];
+
+            common_bit_mask = ~(ones & twos);
+
+            ones &= common_bit_mask;
+            twos &= common_bit_mask;
+        }
+        return ones; // return the single element
+    }
 
 }

@@ -6,7 +6,11 @@ public class PotdSolutions {
 
     public static void main(String[] args) {
         PotdSolutions solutions = new PotdSolutions();
-        System.out.println(solutions.checkArithmeticSubarrays(new int[]{4,6,5,9,3,7}, new int[]{0,0,2}, new int[]{2,3,5}));
+        //System.out.println(solutions.checkArithmeticSubarrays(new int[]{4,6,5,9,3,7}, new int[]{0,0,2}, new int[]{2,3,5}));
+        //System.out.println(solutions.totalMoneyAtNThDay(20));
+//        System.out.println(solutions.numDecodings("06"));
+//        System.out.println(solutions.numberOfBeams(new String[]{"000","111","000"}));
+        System.out.println(solutions.minOperationToMakeArrayEmpty(new int[]{3,14,3,14,3,14,14,3,3,14,14,14,3,14,14,3,14,14,14,3}));
     }
 
     /**
@@ -237,6 +241,169 @@ public class PotdSolutions {
             curr += diff;
         }
         return true;
+    }
+
+    /**
+     *
+     * Given an array of 3n piles where ith pile shows the number of coins. You have to choose the coins such that
+     * - From the pile , alex will pick pile with max coins
+     * - You will pick the max coin from remaining pile.
+     * - Bob will pick the remainig.
+     *
+     * Maximise the number of coins you can get.
+     *
+     *  The approach used in the given code is to sort the piles in ascending order and then select every alternate
+     *  pile starting from the second last pile till the pile at index n/3. This is because, in each step,
+     *  Alice will choose the pile with the maximum number of coins, so we should not choose the largest piles in the beginning.
+     *  Instead, we should choose the second-largest piles so that we can maximize our coins.
+     *
+     * @param piles arr containing coins at ith pile.
+     * @return max no of coins that you could have.
+     */
+    public int maxCoins(int[] piles) {
+        int n = piles.length;
+        Arrays.sort(piles);
+        int count = n / 3;
+        int ans = 0;
+
+        for(int i = n - 2; i >= count; i -= 2) {
+            System.out.print(piles[i] + " ");
+            ans += piles[i];
+        }
+        return ans;
+    }
+
+    public int totalMoneyAtNThDay(int n) {
+        int startDay = 1;
+        int prevMonday = startDay;
+        int sum = 0;
+        int counter = 0;
+
+        for(int i = startDay; i <= n; i++) {
+            if(counter == 7) {
+                startDay = prevMonday + 1;
+                prevMonday += 1;
+                counter = 0;
+            }
+            System.out.println("At day " + i + " No : " + startDay);
+            sum += startDay;
+            startDay += 1;
+            counter++;
+        }
+        return sum;
+    }
+
+    /**
+     * Given a Binary String consisting 0 & 1 only. We have to return minimum number of operations
+     * that we can  make to update the current string so that every 0 & 1s are at alternate
+     * position.
+     * @param s The input String
+     * @return Integer tells min operations required to make the strings equal.
+     */
+    public int minOperations(String s) {
+        int start0 = 0;
+        int start1 = 0;
+
+        for(int i = 0; i < s.length(); i++) {
+            if( i % 2 == 0) {
+                if(s.charAt(i) == '0') {
+                   start1++;
+                } else {
+                    start0++;
+                }
+            } else {
+                if(s.charAt(i) == '1') {
+                    start1++;
+                } else {
+                    start0++;
+                }
+            }
+        }
+        return Math.min(start1, start0);
+    }
+
+    public boolean isValid(int code, int len) {
+        if (len == 1) {
+            return code >= 1 && code <= 26;
+        } else {
+            return code >= 10 && code <= 26;
+        }
+    }
+
+    public int countOfDecoding(int i, String s, int[] dp) {
+        if (i >= s.length()) {
+            return 1;
+        }
+        if (dp[i] != -1) {
+            return dp[i];
+        }
+        dp[i] = 0;
+        if (isValid(s.charAt(i) - '0', 1)) {
+            dp[i] += countOfDecoding(i + 1, s, dp);
+        }
+        if (i < s.length() - 1 && isValid((s.charAt(i) - '0') * 10 + s.charAt(i + 1) - '0', 2)) {
+            dp[i] += countOfDecoding(i + 2, s, dp);
+        }
+        return dp[i];
+    }
+
+    public int numDecodings(String s) {
+        int[] dp = new int[s.length()];
+        Arrays.fill(dp, -1);
+        return countOfDecoding(0, s, dp);
+    }
+
+    /**
+     * The problem involves counting the number of laser beams that can be formed between pairs of security devices
+     * in the bank. A laser beam is possible between two devices if there are no security devices in the rows between them.
+     * @param bank
+     * @return
+     */
+    public int numberOfBeams(String[] bank) {
+        int prevRow = 0;
+        int ans = 0;
+
+        for(int i = 0; i < bank.length; i++) {
+            int currentRow = 0;
+            for(char c : bank[i].toCharArray()) {
+                if(c == '1') currentRow++;
+            }
+
+            if(prevRow != 0 && currentRow != 0) {
+                ans += currentRow * prevRow;
+                prevRow = currentRow;
+            } else if(prevRow == 0 && currentRow != 0) prevRow = currentRow;
+        }
+
+        return ans;
+    }
+
+    /**
+     * The problem wants us to find out the minimum operations required to make the array empty. The idea is to
+     * calculate the freq of each element, then iterate again through the array, if freq of any element is 1 then
+     * return -1 otherwise if freq is in 3 multiple find req operation by dividing from 3 otherwise 2.
+     *
+     * @Date 4 Jan
+     * @Tag Med
+     * @param nums the input array
+     * @return min num of operations required.
+     */
+    public int minOperationToMakeArrayEmpty(int[] nums) {
+        Map<Integer, Integer> freq = new HashMap<>();
+        for(int n : nums) freq.put(n, freq.getOrDefault(n, 0) + 1);
+
+        int op = 0;
+        for(Map.Entry<Integer, Integer> n : freq.entrySet()) {
+            Integer freqOfN = n.getValue();
+            if(freqOfN == 1) return -1;
+
+            if(freqOfN % 3 == 0) {
+                op += freqOfN / 3;
+            } else  {
+                op += (freqOfN / 3) + 1;
+            }
+        }
+        return op;
     }
 
 }
