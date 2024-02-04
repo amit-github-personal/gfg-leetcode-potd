@@ -10,19 +10,6 @@ import java.util.stream.IntStream;
  */
 public class Solutions {
 
-    public static void main(String[] args) {
-
-
-
-        Solutions solutions = new Solutions();
-        //System.out.println(solutions.nthRowOfPascalTriangle(4));
-        //System.out.println(solutions.countOccurrencesInRange(10, 19, 1));
-//        System.out.println(Solutions.determinantOfMatrix(new int[][]{{1, 2, 3},
-//                {4, 5, 6},
-//                {7, 10, 9}}, 3));
-        System.out.println(Solutions.singleElement(new int[]{3, 2, 1, 34, 34, 1, 2, 34, 2, 1}, 10));
-
-    }
 
     /**
      *
@@ -226,4 +213,37 @@ public class Solutions {
         return ones; // return the single element
     }
 
+
+    /**
+     * The problem wants us to find the largest subarray whose sum is
+     * divisible by K.
+     * @param a the input array.
+     * @param n length of input array
+     * @param k the divisor.
+     * @return len of longest subarray.
+     */
+    public int longSubarrWthSumDivByK(int a[], int n, int k) {
+        //Using Preffix Sum
+        Map<Integer, Integer> map = new HashMap<>();
+        int preffixSum = 0;
+        int maxSubarrayLength = 0;
+
+        for(int i=0; i < n; i++) {
+            preffixSum += a[i];
+            int rem = preffixSum %k;
+            if(rem == 0) {
+                maxSubarrayLength = Math.max(maxSubarrayLength, i+1);
+            }
+
+            if(rem < 0) rem +=k;
+
+            if(map.containsKey(rem)) {
+                maxSubarrayLength = Math.max(i - map.get(rem), maxSubarrayLength);
+            } else {
+                map.put(rem, i);
+            }
+        }
+
+        return maxSubarrayLength;
+    }
 }

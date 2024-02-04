@@ -1,45 +1,9 @@
 package com.example.leetcode;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class PotdSolutions {
-
-    public static void main(String[] args) {
-        PotdSolutions solutions = new PotdSolutions();
-        //System.out.println(solutions.checkArithmeticSubarrays(new int[]{4,6,5,9,3,7}, new int[]{0,0,2}, new int[]{2,3,5}));
-        //System.out.println(solutions.totalMoneyAtNThDay(20));
-//        System.out.println(solutions.numDecodings("06"));
-//        System.out.println(solutions.numberOfBeams(new String[]{"000","111","000"}));
-        System.out.println(solutions.minOperationToMakeArrayEmpty(new int[]{3,14,3,14,3,14,14,3,3,14,14,14,3,14,14,3,14,14,14,3}));
-    }
-
-    /**
-     * Tagged: Med
-     * Date: 14 Nov 2023
-     *
-     * Problem Statement
-     *
-     *Given a string s, return the number of unique palindromes of length three that are a subsequence of s.
-     *
-     * Note that even if there are multiple ways to obtain the same subsequence, it is still only counted once.
-     *
-     * A palindrome is a string that reads the same forwards and backwards.
-     *
-     * A subsequence of a string is a new string generated from the original string with some characters (can be none) deleted without changing the relative order of the remaining characters.
-     *
-     *     For example, "ace" is a subsequence of "abcde".
-     *
-     *
-     *
-     *     Intuition
-     *
-     * We need to find the number of unique of PalindromicSubsequence, hence repitition is not a case to be done here.
-     * Approach
-     *
-     * For every char $ in [a,b,c...y,z] , a palindrome of type "$ @ $" will exist if there are atleast 2 occurances of "$".
-     *
-     * Hence we need to find first and last occurance of every char and for every char we need to count unique "@" which represents what characters come in middle of palindrome. This is number of unique characters between FIRST and LAST occurance of "$" char.
-     */
 
     public int countPalindromicSubsequenceOfLength3(String s) {
         int result = 0;
@@ -59,16 +23,6 @@ public class PotdSolutions {
         return result;
     }
 
-
-    /**
-     *
-     * @Tag: Med
-     * @Date: 15 Nov 2023
-     *
-     * Problem Statement
-     *
-     *
-     */
     public int maximumElementAfterDecrementingAndRearranging(int[] arr) {
         Arrays.sort(arr);
         arr[0] = 1;
@@ -77,7 +31,6 @@ public class PotdSolutions {
                 arr[i] = arr[i - 1] + 1;
             }
         }
-
         return arr[arr.length -1];
     }
 
@@ -406,4 +359,162 @@ public class PotdSolutions {
         return op;
     }
 
+
+    public int amountOfTime(TreeNode root, int start) {
+        Map<Integer, List<Integer>> relation = getRelation(root, start);
+
+
+        Queue<Anode> q = new LinkedList<>();
+        q.add(new Anode(start, 0));
+        int maxEl = getMaxKey(relation.keySet().toArray());
+        boolean[] vis = new boolean[maxEl + 1];
+        int max = Integer.MIN_VALUE;
+
+        while(!q.isEmpty()) {
+            Anode node = q.poll();
+
+            if(vis[node.val]) continue;
+            max = Math.max(max, node.dist);
+
+            vis[node.val] = true;
+
+            List<Integer> children = relation.get(node.val);
+            for(int child : children) {
+                Anode c = new Anode(child, node.dist + 1);
+                q.add(c);
+            }
+        }
+
+
+        return max;
+    }
+
+    public int getMaxKey(Object[] arr) {
+        int max = -1;
+
+        for(Object e : arr) max = Math.max(max, Integer.parseInt(String.valueOf(e)));
+        return max;
+    }
+
+    public Map<Integer, List<Integer>> getRelation(TreeNode root, int start) {
+        Map<Integer, List<Integer>> relation = new HashMap<>();
+
+        Queue<Node> queue = new LinkedList<>();
+        queue.add(new Node(null, root));
+
+        int immediateParent = -1;
+        while(!queue.isEmpty()) {
+            Node top = queue.poll();
+
+            List<Integer> existingChild = relation.getOrDefault(top.node.val, new ArrayList<>());
+            if(top.parent != null) {
+                existingChild.add(top.parent.val);
+            }
+
+            if(top.node.left != null) {
+                queue.add(new Node(top.node, top.node.left));
+                existingChild.add(top.node.left.val);
+            }
+
+            if(top.node.right != null) {
+                queue.add(new Node(top.node ,top.node.right));
+                existingChild.add(top.node.right.val);
+            }
+            relation.put(top.node.val, existingChild);
+        }
+
+        return relation;
+    }
+
+    public List<List<Integer>> findWinners(int[][] matches) {
+        Map<Integer, Integer> lostMatchesCount = new HashMap<>();
+
+        for(int[] match: matches) {
+            lostMatchesCount.put(match[1], lostMatchesCount.getOrDefault(match[1], 0) +  1);
+        }
+
+        List<Integer> playersLostExactlyOnce = new ArrayList<>();
+        for(Map.Entry<Integer, Integer> e : lostMatchesCount.entrySet()) {
+            if(e.getValue() == 1 && !playersLostExactlyOnce.contains(e.getKey())) playersLostExactlyOnce.add(e.getKey());
+        }
+
+        List<Integer> neverLost = new ArrayList<>();
+        for(int[] match: matches) {
+            if(!lostMatchesCount.containsKey(match[0]) && !neverLost.contains(match[0])) neverLost.add(match[0]);
+        }
+
+        return List.of( neverLost, playersLostExactlyOnce);
+    }
+
+    public int min_sprinklers(int gallery[], int n) {
+        // code here
+        List<Pair> pairs = generatePairs(gallery);
+
+        Collections.sort(pairs, (a, b) -> a.first - b.first);
+
+        System.out.println(pairs);
+
+        int start = 0, index = 0, answer = 0;
+        int currentMax = Integer.MIN_VALUE;
+
+        while(start < n) {
+            while(index < n) {
+                if(pairs.get(index).first > start) break;
+                currentMax = Math.max(currentMax, pairs.get(start).second);
+                index++;
+            }
+
+            if(currentMax < start) return -1;
+            answer++;
+            start = currentMax + 1;
+        }
+        return answer;
+    }
+
+    List<Pair> generatePairs(int...arr) {
+        List<Pair> pairs = new ArrayList<>();
+
+        for(int i = 0; i < arr.length; i++) {
+            int x = Math.max(i - arr[i], 0);
+            int y = Math.min(i + arr[i], arr.length);
+            pairs.add(new Pair(x, y));
+        }
+        return pairs;
+    }
+
+    class Pair {
+        int first;
+        int second;
+
+        public Pair(int first, int second) {
+            this.first = first;
+            this.second = second;
+        }
+
+        public String toString() {
+            return String.format("(%s, %s)", first, second);
+        }
+    }
+}
+
+
+class Node {
+    TreeNode parent;
+    TreeNode node;
+
+    public Node(TreeNode parent, TreeNode node) {
+        this.parent = parent;
+        this.node = node;
+    }
+
+}
+
+class Anode {
+    int val;
+    int dist;
+
+    public Anode(int node, int dist) {
+        this.val = node;
+        this.dist = dist;
+    }
 }
